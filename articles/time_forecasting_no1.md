@@ -25,7 +25,9 @@ published: false
   
 
 ## 1.3 参考図書
- 
+本記事は、以下の本を参考にする。
+[Pythonによる時系列分析: 予測モデル構築と企業事例](https://www.amazon.co.jp/Python%E3%81%AB%E3%82%88%E3%82%8B%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90-%E4%BA%88%E6%B8%AC%E3%83%A2%E3%83%87%E3%83%AB%E6%A7%8B%E7%AF%89%E3%81%A8%E4%BC%81%E6%A5%AD%E4%BA%8B%E4%BE%8B-%E9%AB%99%E6%A9%8B-%E5%A8%81%E7%9F%A5%E9%83%8E/dp/4274230619/ref=sr_1_5)
+
 
 # 2. 問題設定
  
