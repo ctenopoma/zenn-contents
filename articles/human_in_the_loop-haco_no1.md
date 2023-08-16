@@ -1,5 +1,5 @@
 ---
-title: "ヒト介入型の強化学習:HACO"
+title: "ヒト介入型の強化学習:HACO Vol.1"
 emoji: "🎁"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["強化学習", "HumanInTheLoop", "Python"]
@@ -28,12 +28,14 @@ published: false
     - [Human-in-the-loop について](#human-in-the-loop-について)
     - [1.2 目次](#12-目次)
   - [1.3 Abstract](#13-abstract)
-- [2. Human－AI Copilot Optimization](#2-humanai-copilot-optimization)
+- [2. Human-AI](#2-human-ai)
   - [2.1 安全性が求められる環境下での学習](#21-安全性が求められる環境下での学習)
     - [2.1.1 模倣学習（IL）](#211-模倣学習il)
-    - [2.1.2 先行研究におけるhuma-in-the-loop](#212-先行研究におけるhuma-in-the-loop)
+    - [2.1.2 先行研究におけるhuman-in-the-loop](#212-先行研究におけるhuman-in-the-loop)
     - [2.1.3 提案手法](#213-提案手法)
   - [2.2 関連手法](#22-関連手法)
+    - [2.2.1 試行から学習する手法](#221-試行から学習する手法)
+    - [Vol.2はこちら](#vol2はこちら)
 
 ### 1.3 Abstract
 
@@ -52,7 +54,7 @@ published: false
  結果として、安全な試行を維持しながら高いサンプル効率を有することが示されており、未知の環境における運転タスクにて「強化学習」と「模倣学習」の両方の面において、良い成績に達することができた。
   →  章
 
-## 2. Human－AI Copilot Optimization
+## 2. Human-AI
 
 ### 2.1 安全性が求められる環境下での学習
 
@@ -75,7 +77,7 @@ published: false
 
 しかし、ILパラダイムは分布シフトの問題と、誘導されたスキルは制御タスの変化に対して十分なロバスト性を有していないとの問題がある。
 
-#### 2.1.2 先行研究におけるhuma-in-the-loop
+#### 2.1.2 先行研究におけるhuman-in-the-loop
 
 Human-in-the-loopは純粋なRLやILとは異なり、人がagentの学習過程を監視しながら介入する手法である。
 先行研究でのHuman-in-the-loopは、agentの取った行動の評価や、軌道の選択に関して人の介入を行っていたが、それでは学習過程において不安全な試行が行われる可能性がある。
@@ -87,6 +89,26 @@ Human-in-the-loopは純粋なRLやILとは異なり、人がagentの学習過程
 #### 2.1.3 提案手法
 
 HACOの重要な性質は、人の介入を最小限に、かつ試行中における学習中agentの自動化のレベルを調整できる点である。
+学習に用いるのは2つのデータ
+1. 人の介入により得られたデータ
+1. 部分的な試行データ
 
+？学習中にagentは環境報酬にアクセスすることができないにも関わらず、オフライン強化学習を用いて人とAIの混合した代理価値関数を維持する。
 
 ### 2.2 関連手法
+
+#### 2.2.1 試行から学習する手法
+
+- Passive imitation learning、オフライン強化学習
+ ⇒ 環境との相互作用が不要なため、既製のデータセットからagentを学習し、学習中の試行の安全性を保証する手法。
+
+- 逆強化学習
+ ⇒ 人の試行から報酬関数を学習し、agentに模倣させるために使用する。
+
+- GAIL、SQIL
+ ⇒ 人とAIが出力する軌跡の類似度を比較し、agentに環境と作用するように要求する。
+
+(Vol.1　完)
+
+ #### Vol.2はこちら
+ @[card](http://localhost:8000/articles/human_in_the_loop-haco_no2)
