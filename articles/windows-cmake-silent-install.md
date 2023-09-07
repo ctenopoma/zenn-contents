@@ -86,13 +86,14 @@ cmake version 3.27.4
 
 # 3.余談
 
-すでに目的は達成しているわけですが、Cmakeソフトウェアをビルドしてみる。
-参考は以下のページ。Macでやってはりますが、まあいけるでしょ。
+すでに目的は達成しているわけですが、Cmakeでビルドしてみる。
+参考は以下のページ。Macでやってはりますが、Winowsでもまあいけるでしょ。（フラグ）
 
 https://zenn.dev/ohtaman/articles/advent2022_use_scip
 
 (追記)
-windowsの人はcmakeで完結できるみたい。
+世の中そう甘くはなかった。
+が、むしろ簡単にwindowsの人はcmakeで完結できるみたい。
 https://scipopt.org/doc-7.0.1/html/CMAKE.php
 
 
@@ -107,6 +108,8 @@ https://silentinstallhq.com/git-silent-install-how-to-guide/#google_vignette
 ```
 
 適当に打ち込んだコマンド備忘録
+
+## 3.1 soplexとscipのビルド
 
 ```Cmd: Command Prompt
 # soplexのダウンロード
@@ -123,7 +126,7 @@ https://silentinstallhq.com/git-silent-install-how-to-guide/#google_vignette
 > cmake --build build --config Release
 
 # soplexのパスを通す
-> set set SOPLEX_DIR=<保存先>\soplex\build\
+> set SOPLEX_DIR=<保存先>\soplex\build\
 
 # scipのダウンロード
 > cd ../
@@ -132,14 +135,8 @@ https://silentinstallhq.com/git-silent-install-how-to-guide/#google_vignette
 # scip build
 > cmake -Bbuild -H. -DAUTOBUILD=ON
 > cmake --build build --config Release
-
-# MS VS Build Toolsのインストール
-> bitsadmin /transfer download  https://aka.ms/vs/17/release/vs_BuildTools.exe c:\download\vs_BuildTools.exe
-> cd c:\download\vs_BuildTools.exe
-> .\vs_BuildTools.exe --layout .\vs_BuildTools
-> .\vs_setup.exe --nocache --wait --noUpdateInstaller --noWeb --allWorkloads --includeRecommended --includeOptional --quiet --norestart
-
 ```
+
 
 ```BAT: code_editer.bat
 @echo off
@@ -168,10 +165,24 @@ rename %OUTPUT_FILE% %RESAVE_INPUT_FILE%
 endlocal
 ```
 
+## 3.2 MS VS Build Toolsのインストール
+インストールにかなり時間がかかりますが無心です。
+よく知らないけれど、これでビルドかけれるんじゃないのか？と頭によぎりましたが無心です。
+
+```Cmd: Command Prompt
+
+> bitsadmin /transfer download  https://aka.ms/vs/17/release/vs_BuildTools.exe c:\download\vs_BuildTools.exe
+> cd c:\download\vs_BuildTools.exe
+> .\vs_BuildTools.exe --layout .\vs_BuildTools
+> .\vs_setup.exe --nocache --wait --noUpdateInstaller --noWeb --allWorkloads --includeRecommended --includeOptional --quiet --norestart
+
+```
+
+
 # 4. おわり
 
 お疲れさまでした。
-これでビルド完成です。
+これでビルド完了です。
 
 pyscipoptを使う人は、SCIPOPTDIRのパスを、<保存先>\scip\scip\buildに通しておいてください。
 きれいなインストール方法とは思いませんが、動くのでヨシっ！
