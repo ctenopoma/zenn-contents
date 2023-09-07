@@ -2,7 +2,7 @@
 title: "Windows11でCmakeをコマンドプロンプトからインストール"
 emoji: "💨"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["Cmake"]
+topics: ["cmake", "Tech", "scip"]
 published: true
 ---
 
@@ -21,7 +21,7 @@ https://silentinstallhq.com/cmake-silent-install-how-to-guide/
 
 # 2 インストール開始
 
-## 2.1 .Cmakeのダウンロード
+## 2.1 Cmakeのダウンロード
 
 さっそくCmakeのソースファイルをダウンロード。
 web上のファイルをCmdでダウンロードするには、以下のコマンドを実行。
