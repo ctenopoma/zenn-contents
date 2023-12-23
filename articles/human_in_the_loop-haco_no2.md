@@ -36,12 +36,22 @@ published: false
     - [2.2.2 人の介入の削減](#222-人の介入の削減)
     - [2.2.3 方策の学習](#223-方策の学習)
 
-
 ## 2. HACO:Human-AI Copilot Optimization
 
 ### 2.1 HACOの学習パラダイム
 
+本論文では、以下の定義を使用する。
+
+- $a_h$: autonomous agentの行動
+- $\pi_n(a_n|s)$: autonomous agentの方策関数
+- $a_h$: 人が介入した行動
+- $I(s, a_n)$: 人が介入したことを示すBool変数。$\hat a = I(s, a_n)a_h + (1-I(s, a_n)a_n$を満たす。
+- $\pi_b(a|s) = \pi_n(a|s)(1-I(s, a_n)) + \pi_h G(s)$
+
 ### 2.2 目的関数の学習
+
+３つの要素を含んだ下記に示す目的関数を最大化する。
+$\max E[Q(s,a) H ]$
 
 #### 2.2.1 行動価値関数
 
