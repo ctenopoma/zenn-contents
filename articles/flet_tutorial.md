@@ -58,5 +58,122 @@ fletのチュートリアルを実行。
     ft.app(target=main)
 ```
 
-![実行結果](/img/flet_tutorial/image.png)
+![](/img/flet_tutorial/image.png)
 
+### 時系列データのグラフ表示
+
+例題として、経路追従アルゴリズムにおける車両の位置と、参照点を示す時系列データを描画する方法を考えます。
+
+まずは、すべての時間帯を表示するプログラムを作成しました。
+
+``` code: flet_tutorial.py
+    import numpy as np
+    import math
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    from flet.matplotlib_chart import MatplotlibChart
+
+    def main(page: ft.Page):
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        path_plot(ax)
+
+        page.add(MatplotlibChart(fig, expand=True))
+
+    def path_plot(ax):
+        course = pd.read_csv("introduction/data/course.csv", index_col=None)
+        cx = course.x
+        cy = course.y
+
+        state = pd.read_csv("introduction/data/state.csv", index_col=None)
+        x = state.sx
+        y = state.sy
+        v = state.sv
+        time = state.time
+
+        ax.plot(cx, cy, ".b", label="course")
+        ax.plot(x, y, "-r", label="trajectory")
+        ax.legend()
+        ax.set_xlabel("x[m]")
+        ax.set_ylabel("y[m]")
+        ax.axis("equal")
+        ax.grid(True)
+        
+        return ax
+
+    if __name__ == '__main__':
+        ft.app(target=main)
+```
+
+![](/img/flet_tutorial/image2.png)
+
+時系列データは、下記を参照して作成しました。
+
+https://myenigma.hatenablog.com/entry/2017/06/05/111007
+
+データの形式は次の通り
+
+:::details データ形式
+
+    ``` csv: course.csv
+        x,y
+        0,0
+        -,-
+        49.5,67.3
+    ```
+
+    x:コース参照点のx座標
+    y:コース参照点のy座標
+
+    ``` csv: course.csv
+        time,sx,sy,sv,tx,ty
+        0.0,-0.0,-3.0,0.0,0.0,0.0
+        -,-,-,-,-,-
+        38.8,48.8,65.3,2.8,49.5,67.3
+    ```
+
+    time: 時間
+    sx: 該当時間における車体のx座標
+    sy: 該当時間における車体のy座標
+    sv: 該当時間における車体の速度
+    tx: 該当時間における参照点のx座標
+    ty: 該当時間における参照点のy座標
+
+:::
+
+### slider barをつける
+
+slider barをつけてみました。
+これで時間を操作するつもり。
+
+``` code: flet_tutorial.py
+    def main(page: ft.Page):
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        time = path_plot(ax)
+
+        page.add(MatplotlibChart(fig, expand=True))
+
+        def slider_changed(e):
+            t.value = f"time {e.control.value}[sec]"
+            page.update()
+
+        unit_time = ((max(time)) - min(time))/len(time)
+        print(min(time))
+        print(max(time))
+        print(len(time))
+        print(unit_time)
+
+        t = ft.Text()
+        page.add(
+            ft.Text("time"),
+            ft.Slider(min=min(time), max=max(time), divisions=unit_time, label="{value}[sec]", on_change=slider_changed), t)
+```
+
+![](/img/flet_tutorial/image3.png)
+
+### 時間で更新
+
+slider barの更新に合わせて描画を更新する。
