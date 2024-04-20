@@ -14,6 +14,14 @@ published: True
 SCIPのインストールは公式サイトからできます。
 ライセンスについては公式DOCをよく読んでおく。
 
+### インストーラー入手手順
+1. version、OSを選択
+2. 64bit or 32bitを選択しクリック
+3. インストールページで、名前、メールアドレス、国を入力して **start Download**をクリック
+
 @[card](https://www.scipopt.org/index.php#download)
 
-### 
+### インストール手順
+1. インストーラーを実行
+2. インストール設定中のPATH設定は通しておく
+![PATH](/img/mip_2/image.png)

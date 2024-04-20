@@ -28,7 +28,7 @@ published: True
 
 ### 環境構築系
 - SCIPを実行する環境の構築
-@[card](mixintegerprogramming_study_2)
+@[card](https://zenn.dev/ctenopoma/articles/mixintegerprogramming_study_2)
 
 
 ### 手法
