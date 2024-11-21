@@ -22,4 +22,6 @@ published: true
 
 ## 画面
 
-![alt text](/img/item_manager/image.png)
+![画面のイメージ](/img/item_manager/image.png)
+
+## 機能
