@@ -22,7 +22,7 @@ published: true
 
 ## 画面
 
-![画面のイメージ](https://github.com/ctenopoma/zenn-contents/blob/master/img/item_manager/image.png)
+![画面のイメージ](/img/item_manager/image.png)
 
 ## 機能
 - 物品登録機能
