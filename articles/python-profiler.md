@@ -9,14 +9,14 @@ published: true
 ## 前段のお話
 
 前回の記事で、Rust製のPythonライブラリの作り方について調査した。
-結果的には、再帰的な処理にてRustの方が1,007,605倍速い結果になった。
+結果的には、再帰的な処理にてRustの方が24倍速い結果になった。
 自作ライブラリ達をRustに置き換えるにあたり、ボトルネックになっている処理を調べる必要がある。
 
 ```cmd
 Fibonacci(35):
-  Rust:   0.000001s
-  Python: 0.725476s
-  Speedup: 1007605.9x
+  Rust:   0.025235s
+  Python: 0.718564s
+  Speedup: 28.5x
 ```
 
 @[card](https://zenn.dev/ctenopoma/articles/rust-python-ai)

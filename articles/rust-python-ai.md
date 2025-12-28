@@ -19,31 +19,33 @@ published: true
 まず適当なライブラリを作成してみて、その後、Rust製のPythonライブラリ開発用のテンプレートを作成していこうと思います。
 
 ## サンプルの実装
+
 ### 環境
+
 AIの利用を前提として、以下の環境で開発しようと思います。
+
 - copilot
 - Rustup: 1.28.2
 - Python: 3.14
 
 ### 環境構築
+
 #### Rust
 
 以下のページからrustupをダウンロード
-https://rust-lang.org/ja/learn/get-started/
-
-
+<https://rust-lang.org/ja/learn/get-started/>
 
 #### Python
 
 uvをインストール
 
 :::details uvのインストール手順
+
 - pip install --user pipx
 - pipxのPATHを通す
 - pipx install uv
 - uvのPATHを通す
 :::
-
 
 ### プロジェクトフォルダの作成
 
@@ -52,6 +54,7 @@ uvをインストール
 
 pythonの実行環境としてはuvを利用するため、以下のコマンドを実行。
 ※ .python-versionを3.14にしておいて下さい
+
 ```cmd
 uv init .
 uv run main.py
@@ -61,6 +64,7 @@ Hello from python-rust!
 ```
 
 :::details pyproject.toml
+
 ```toml
 [project]
 name = "python-rust"
@@ -82,12 +86,13 @@ requires = ["maturin>=1.0"]
 build-backend = "maturin"
 
 ```
-:::
 
+:::
 
 pythonのリンターにはruffを利用します。
 
 :::details ruff.toml
+
 ```toml
 line-length = 100
 # Ruff supports up to Python 3.12; use the latest available while targeting >=3.14.
@@ -110,13 +115,14 @@ known-first-party = ["python_rust"]
 combine-as-imports = true
 
 ```
-:::
 
+:::
 
 次にrust用の設定ファイルを配置
 maturinを使うのですが、uv initとmaturin initの共存の仕方がわからず、手動でファイルを配置。
 
 :::details Cargo.toml
+
 ```toml
 [package]
 name = "python-rust"
@@ -148,18 +154,21 @@ nursery = "warn"
 # module_name_repetitions = "allow"
 # missing_errors_doc = "allow"
 ```
+
 :::
 
 :::details rust-toolchain.toml
+
 ```toml
 [toolchain]
 channel = "stable"
 components = ["rustfmt", "clippy"]
 ```
+
 :::
 
-
 :::details .cargo/config.toml
+
 ```toml
 # .cargo/config.toml
 [target.x86_64-pc-windows-msvc]
@@ -169,10 +178,11 @@ rustflags = ["-D", "warnings"]
 lint = "clippy -- -D warnings"
 lint-fix = "clippy --fix"
 ```
+
 :::
 
-
 最終的なディレクトリ構造はこんな感じ。
+
 ```cmd
 python-rust
 ├── .cargo
@@ -211,33 +221,34 @@ def fibonacci(n:  int) -> int:
 早速、speckitを使ってAIに実装してもらいます。
 出来上がったコードが以下の通り
 
+※ コメントでいただいた結果に訂正しています。
 
 ```rust:lib.rs
 use pyo3::prelude::*;
 
 #[pyfunction]
 #[must_use]
-pub fn fibonacci(n: u32) -> u64 {
+pub fn fibonacci_recursive(n: u32) -> u64 {
     match n {
         0 => 0,
         1 => 1,
-        _ => {
-            let (mut a, mut b) = (0, 1);
-            for _ in 2..=n {
-                let temp = a + b;
-                a = b;
-                b = temp;
-            }
-            b
-        }
+        _ => fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2),
     }
+}
+
+#[pyfunction]
+#[must_use]
+pub fn fibonacci(n: u32) -> u64 {
+    fibonacci_recursive(n)
 }
 
 #[pymodule]
 fn python_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(fibonacci_recursive, m)?)?;
     m.add_function(wrap_pyfunction!(fibonacci, m)?)?;
     Ok(())
 }
+
 
 ```
 
@@ -246,7 +257,7 @@ from .python_rust import fibonacci as fibonacci_rust  # type: ignore # noqa: F40
 ```
 
 出来上がったコードはこちら。
-https://github.com/ctenopoma/Python-Rust-Sample
+@[card](https://github.com/ctenopoma/Python-Rust-Sample)
 
 ### 評価
 
@@ -254,19 +265,27 @@ https://github.com/ctenopoma/Python-Rust-Sample
 
 ```cmd
 uv sync
-cd .venv/Scripts
-activate
-python
+uv run python
 import python_rust
 python_rust.benchamrk()
 ```
 
 結果はこちら。
-```
+
+※ コメントでいただいた結果に訂正しています。
+
+```cmd
+>>> python_rust.benchmark()
 Fibonacci(35):
-  Rust:   0.000001s
-  Python: 0.725476s
-  Speedup: 1007605.9x
+  Rust:   0.025235s
+  Python: 0.718564s
+  Speedup: 28.5x
+
+>>> python_rust.benchmark_iterative()
+Fibonacci(35) iterative:
+  Rust:   0.024759s
+  Python: 0.000002s
+  Speedup: 0.0x
 ```
 
 圧倒的な処理速度。これはいいですね。
@@ -282,19 +301,23 @@ AIにコーディングしてもらったので、何が何やらあまりわか
 以下のツールの使用を前提とした開発テンプレートを作成します。
 
 ### 配布ツール
+
 - copier
 
 ### Python
+
 - uv
 - ruff
 - pyrefly
 - maturin
 
 ### Rust
+
 - rustup
 - clippy
 
 ### 公開先
+
 作成したテンプレートを以下で公開しています。
 
 ```cmd
@@ -302,7 +325,7 @@ pipx install copier
 copier copy https://github.com/ctenopoma/python-rust-copier.git my-project
 ```
 
-https://github.com/ctenopoma/python-rust-copier
+@[card](https://github.com/ctenopoma/python-rust-copier)
 
 こんな感じのディレクトリになります。
 src/**.rsを追加して開発を進めていきます。
@@ -342,3 +365,9 @@ src/**.rsを追加して開発を進めていきます。
 
 Rustを使うことで、個人的にはC++のような面倒なビルドもなく、割と楽に高速化が図れるなという感想。
 場面によっては活躍してくれると思うので、AIを利用する前提のコーディングではコスト低く開発がすすめられそう。
+
+## 追記
+
+@Northwardさんがコメントにて、実装した関数について訂正いただいています。
+分かりやすく書いていただいているので、コメントを参照ください。
+AIが書いたコードをよく見もせずに載せてしまい、大反省。
