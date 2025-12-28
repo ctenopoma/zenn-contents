@@ -2,8 +2,8 @@
 title: "Pythonの処理時間を調べる"
 emoji: "📑"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: [Python,Scalene,cProfile,viztracer,pyspy]
-published: true
+topics: [Python,cProfile,Austin,viztracer,pyspy]
+published: false
 ---
 
 ## 前段のお話
@@ -19,13 +19,16 @@ Fibonacci(35):
   Speedup: 1007605.9x
 ```
 
+@[card](https://zenn.dev/ctenopoma/articles/rust-python-ai)
+
 ## Pythonプロファイラ
 
-簡単に調べてみたところ、以下の4つが候補に挙がった。
-前者は公式のプロファイラらしい。
+簡単に調べてみたところ、以下の5つが候補に挙がった。
+1つ目は公式のプロファイラらしい。
 
 @[card](https://docs.python.org/ja/3.13/library/profile.html)
 @[card](https://github.com/plasma-umass/scalene)
+@[card](https://github.com/P403n1x87/austin)
 @[card](https://github.com/gaogaotiantian/viztracer)
 @[card](https://github.com/benfred/py-spy)
 
@@ -281,7 +284,31 @@ time関数で簡単に計測。これが最も簡易的なプロファイラで�
 
 ### cProfile
 
+cProfileで計測して、snakevizで描画してみます。
+
+```cmd
+uv run python -m cProfile -o profile.stats eval_single_process.py
+uvx snakeviz profile.stats 
+```
+
+うーん。。見ずらい。
+直感的にどの関数に時間がかかっているかわからないです。
+
+![alt text](/images/python-profiler/cprofile.png)
+
 ### Scalene
+
+windowsは公式サポート外らしい。
+Linux環境は用意できるが、諸事情により候補外。。
+
+### Austin
+
+```cmd
+uv tool install austin-python
+uv tool install austin-web
+uv run austin -o profile.austin python single_process.py
+uvx austin-web profile.austin
+```
 
 ### viztracer
 
