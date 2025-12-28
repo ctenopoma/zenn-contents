@@ -2,8 +2,8 @@
 title: "Pythonの処理時間を調べる"
 emoji: "📑"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: [Python,cProfile,Austin,viztracer,pyspy]
-published: false
+topics: [Python,cProfile,viztracer,pyspy]
+published: true
 ---
 
 ## 前段のお話
@@ -299,17 +299,60 @@ uvx snakeviz profile.stats
 ### Scalene
 
 windowsは公式サポート外らしい。
-Linux環境は用意できるが、諸事情により候補外。。
+Linux環境は用意できるが、普段Windowsで開発するので候補外。。
 
 ### Austin
+
+これもうまくいかない。。
+windows対応とありますが、何かがダメみたい。
 
 ```cmd
 uv tool install austin-python
 uv tool install austin-web
 uv run austin -o profile.austin python single_process.py
 uvx austin-web profile.austin
+----------------------------------------------
+austin-web: Austin did not start properly
 ```
 
 ### viztracer
 
+時系列的な関数の動作感を見るにはこれで十分なかんじ。
+CPUなどの計算資源の利用率などは見れません。
+(CPU使用率は見れるらしいのですが、うまく表示できなかった)
+
+```cmd
+uv add --dev viztracer
+uv run python -m viztracer eval_single_process.py
+vizviewer result.json
+```
+
+#### single process
+
+ぱっと見で何に時間がかかっているかは判断できます。
+
+![alt text](/images/python-profiler/viztracer.png)
+
+#### multi process
+
+なんの関数かまでは、ぱっと見ではわかりませんね。
+
+![alt text](/images/python-profiler/viztracer2.png)
+
 ### py-spy
+
+一番期待していたのですが、これもうまく実行できず。
+これもwindows対応とかいてあるのですがね。。
+
+```cmd
+uv add --dev py-spy
+uv run py-spy record -o profile.svg -- python eval_single_process.py
+------------------------------
+Error: Failed to find python version from target process
+```
+
+## 結論
+
+かろうじてviztracerが試せましたが、満足はできない結果に。
+普段windowsで開発するのですが、検証用の環境が必要そうですね。
+次はLinux環境を準備して試すことにします。
