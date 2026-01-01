@@ -306,7 +306,7 @@ AIにコーディングしてもらったので、何が何やらあまりわか
 
 ### Python
 
-- uv
+- uv(Python>=3.12)
 - ruff
 - pyrefly
 - maturin
