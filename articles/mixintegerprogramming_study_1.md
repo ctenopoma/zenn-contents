@@ -33,7 +33,9 @@ published: True
 
 ### 手法
 - 列生成法
+@[card](https://zenn.dev/ctenopoma/articles/column-generation)
 - 分枝価格法
+@[card](https://zenn.dev/ctenopoma/articles/branch-and-price)
 
 ### スケジューリング系
 - TBD
