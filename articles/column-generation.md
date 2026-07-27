@@ -2,7 +2,7 @@
 title: "図で理解する列生成法 〜 原反の切り出し(カッティングストック)を題材に"
 emoji: "✂️"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: [数理最適化, 混合整数最適化, 列生成法, Python, PuLP]
+topics: [数理最適化, 混合整数最適化, 列生成法, Python, PySCIPOpt]
 published: false
 ---
 
@@ -19,13 +19,11 @@ published: false
 
 :::message
 この記事のコードはすべて手元で実行して結果を確認しています。
-まず読みやすさ重視で **PuLP(CBC)** の実装を示し、そのあとで
-このシリーズの標準環境である **PySCIPOpt(SCIP)** の実装を載せます。
+ソルバーはこのシリーズの標準環境である **PySCIPOpt(SCIP)** に統一しています。
 
 | | バージョン |
 | ---- | ---- |
 | Python | 3.14 |
-| PuLP | 3.3.2(同梱CBC) |
 | PySCIPOpt | 6.2.1 |
 | SCIP | 10.0 |
 :::
@@ -198,114 +196,10 @@ $$
 「指数個の列挙」が「小さな最適化問題1回」に化けたのがポイントです。
 :::
 
-## ステップ4: 実装する(PuLP版)
+## ステップ4: 実装する
 
-全部つなげると、こうなります。まずは読みやすさ優先で PuLP(CBC)を使います。
-SCIP版はこの後に載せます。
-
-```python
-import pulp
-
-W = 3000  # 原反幅[mm]
-ORDERS = [("A", 1380, 40), ("B", 1120, 90), ("C", 940, 120),
-          ("D", 760, 60), ("E", 610, 110), ("F", 430, 150)]
-WIDTHS = [w for _, w, _ in ORDERS]
-DEMANDS = [d for _, _, d in ORDERS]
-N = len(ORDERS)
-
-
-def solve_master(patterns, integer=False):
-    """マスター問題: 手持ちパターンだけで「何本ずつ使うか」を決める"""
-    cat = "Integer" if integer else "Continuous"
-    prob = pulp.LpProblem("master", pulp.LpMinimize)
-    x = [pulp.LpVariable(f"x{j}", lowBound=0, cat=cat) for j in range(len(patterns))]
-    prob += pulp.lpSum(x)  # 使う原反の本数を最小化
-    for i in range(N):
-        prob += (pulp.lpSum(patterns[j][i] * x[j] for j in range(len(patterns)))
-                 >= DEMANDS[i]), f"demand_{i}"
-    prob.solve(pulp.PULP_CBC_CMD(msg=0))
-
-    obj = pulp.value(prob.objective)
-    xs = [v.value() for v in x]
-    # LPのときだけ双対価格が取れる(整数計画では取れない)
-    duals = None if integer else [prob.constraints[f"demand_{i}"].pi for i in range(N)]
-    return obj, xs, duals
-
-
-def solve_pricing(duals):
-    """価格付け問題: 双対価格を「価値」としたナップサック問題"""
-    prob = pulp.LpProblem("pricing", pulp.LpMaximize)
-    a = [pulp.LpVariable(f"a{i}", lowBound=0, cat="Integer") for i in range(N)]
-    prob += pulp.lpSum(duals[i] * a[i] for i in range(N))          # 価値の合計を最大化
-    prob += pulp.lpSum(WIDTHS[i] * a[i] for i in range(N)) <= W    # 原反幅に収める
-    prob.solve(pulp.PULP_CBC_CMD(msg=0))
-    return pulp.value(prob.objective), [int(round(v.value())) for v in a]
-
-
-# 初期パターン: 1品種だけを詰め込む
-patterns = []
-for i in range(N):
-    p = [0] * N
-    p[i] = W // WIDTHS[i]
-    patterns.append(p)
-
-# --- 列生成のループ ---
-for it in range(1, 100):
-    obj, xs, duals = solve_master(patterns)      # マスター問題を解いて双対価格を得る
-    val, new_pattern = solve_pricing(duals)      # 一番おいしい切り方を1つ作る
-    reduced_cost = 1 - val
-    print(f"[{it}] LP={obj:.3f} 被約費用={reduced_cost:+.4f} 新パターン={new_pattern}")
-
-    if reduced_cost > -1e-6:                     # もう改善する列は存在しない
-        print("  -> LP最適に到達")
-        break
-    patterns.append(new_pattern)                 # 列を1本追加してやり直し
-
-# 最後に、生成された列だけを使って整数計画として解く
-lp_obj, _, _ = solve_master(patterns)
-ip_obj, ip_x, _ = solve_master(patterns, integer=True)
-print(f"LP下界={lp_obj:.3f} / 整数解={ip_obj:.0f} / 生成した列={len(patterns)}")
-```
-
-### 実行結果
-
-```txt
-[1] LP=177.500 被約費用=-0.3333 新パターン=[0, 2, 0, 1, 0, 0]
-[2] LP=162.500 被約費用=-0.2500 新パターン=[0, 0, 0, 3, 1, 0]
-[3] LP=161.250 被約費用=-0.1667 新パターン=[0, 0, 0, 0, 4, 1]
-[4] LP=156.875 被約費用=-0.0972 新パターン=[0, 0, 0, 1, 0, 5]
-[5] LP=155.417 被約費用=-0.0833 新パターン=[0, 1, 0, 0, 0, 4]
-[6] LP=154.808 被約費用=-0.0513 新パターン=[0, 1, 2, 0, 0, 0]
-[7] LP=152.377 被約費用=-0.0574 新パターン=[1, 0, 0, 1, 0, 2]
-[8] LP=150.192 被約費用=-0.0385 新パターン=[0, 0, 0, 0, 2, 4]
-[9] LP=149.881 被約費用=-0.0238 新パターン=[0, 0, 0, 2, 1, 2]
-[10] LP=149.821 被約費用=-0.0179 新パターン=[0, 1, 0, 0, 3, 0]
-[11] LP=149.375 被約費用=+0.0000 新パターン=[0, 0, 0, 0, 2, 4]
-  -> LP最適に到達
-LP下界=149.375 / 整数解=150 / 生成した列=16
-```
-
-![収束の様子](/images/column-generation/fig5_convergence.png)
-
-11回の反復で終了しました。追加した列は10本だけです。
-
-- 序盤の列は効果が大きく(1本足すだけで15本分の改善)、終盤になるほど効果が小さくなる
-- 被約費用が0になった時点で「もう改善する列は存在しない」ことが**証明**されて終了
-
-得られた解がこちらです。
-
-![列生成後の解](/images/column-generation/fig4_solution.png)
-
-| | 使用本数 | 歩留まり |
-| ---- | ---- | ---- |
-| 初期パターン(1品種詰め)のみ | 178本 | 83.5% |
-| **列生成 + 整数化** | **150本** | **99.1%** |
-
-同じ注文を、原反28本(約16%)少なく作れることになりました。
-
-## PySCIPOpt(SCIP)で実装する
-
-このシリーズの標準環境は SCIP なので、同じものを PySCIPOpt でも書いておきます。
+全部つなげると、こうなります。ソルバーは SCIP(PySCIPOpt)を使います。
+環境構築はこちらです。
 
 @[card](https://zenn.dev/ctenopoma/articles/mixintegerprogramming_study_2)
 
@@ -313,9 +207,10 @@ LP下界=149.375 / 整数解=150 / 生成した列=16
 pip install pyscipopt
 ```
 
-### 双対価格の取り出しに注意が必要
+### 先に注意: 双対価格の取り出し
 
-SCIP は「整数計画ソルバー」なので、**何も設定しないと双対価格が取れません**。
+列生成では**マスター問題の双対価格が命**です。
+ところが SCIP は「整数計画ソルバー」なので、**何も設定しないと双対価格が取れません**。
 前処理(presolve)が問題を変形してしまい、元の制約に対応する双対値が失われるためです。
 
 同じLPを設定を変えて解き、双対価格がどうなるか比べてみました。
@@ -342,7 +237,7 @@ SCIP は「整数計画ソルバー」なので、**何も設定しないと双�
 ```python
 from pyscipopt import Model, quicksum, SCIP_PARAMSETTING
 
-W = 3000
+W = 3000  # 原反幅[mm]
 ORDERS = [("A", 1380, 40), ("B", 1120, 90), ("C", 940, 120),
           ("D", 760, 60), ("E", 610, 110), ("F", 430, 150)]
 WIDTHS = [w for _, w, _ in ORDERS]
@@ -351,7 +246,10 @@ N = len(ORDERS)
 
 
 def solve_master(patterns, integer=False):
-    """マスター問題。integer=False のときは LP として解き、双対価格を返す。"""
+    """マスター問題: 手持ちパターンだけで「何本ずつ使うか」を決める。
+
+    integer=False のときは LP として解き、双対価格も返す。
+    """
     m = Model("master")
     m.hideOutput()
     if not integer:
@@ -362,7 +260,7 @@ def solve_master(patterns, integer=False):
 
     vtype = "I" if integer else "C"
     x = [m.addVar(vtype=vtype, lb=0, obj=1.0, name=f"x{j}") for j in range(len(patterns))]
-    m.setMinimize()
+    m.setMinimize()  # 使う原反の本数を最小化
 
     cons = []
     for i in range(N):
@@ -372,17 +270,18 @@ def solve_master(patterns, integer=False):
         cons.append(c)
 
     m.optimize()
+    # LPのときだけ双対価格が取れる(整数計画では取れない)
     duals = None if integer else [m.getDualSolVal(c) for c in cons]
     return m.getObjVal(), [m.getVal(v) for v in x], duals
 
 
 def solve_pricing(duals):
-    """価格付け問題: 双対価格を価値とみなした整数ナップサック。"""
+    """価格付け問題: 双対価格を「価値」とみなした整数ナップサック問題"""
     m = Model("pricing")
     m.hideOutput()
     a = [m.addVar(vtype="I", lb=0, obj=duals[i], name=f"a{i}") for i in range(N)]
-    m.setMaximize()
-    m.addCons(quicksum(WIDTHS[i] * a[i] for i in range(N)) <= W)
+    m.setMaximize()                                                 # 価値の合計を最大化
+    m.addCons(quicksum(WIDTHS[i] * a[i] for i in range(N)) <= W)    # 原反幅に収める
     m.optimize()
     return m.getObjVal(), [int(round(m.getVal(v))) for v in a]
 
@@ -390,16 +289,19 @@ def solve_pricing(duals):
 # 初期パターン: 1品種だけを詰め込む
 patterns = [[W // WIDTHS[i] if i == j else 0 for i in range(N)] for j in range(N)]
 
+# --- 列生成のループ ---
 for it in range(1, 100):
-    obj, xs, duals = solve_master(patterns)
-    val, new_pattern = solve_pricing(duals)
+    obj, xs, duals = solve_master(patterns)      # マスター問題を解いて双対価格を得る
+    val, new_pattern = solve_pricing(duals)      # 一番おいしい切り方を1つ作る
     reduced_cost = 1 - val
     print(f"[{it}] LP={obj:.3f} 被約費用={reduced_cost:+.4f} 新パターン={new_pattern}")
-    if reduced_cost > -1e-6:
+
+    if reduced_cost > -1e-6:                     # もう改善する列は存在しない
         print("  -> LP最適に到達")
         break
-    patterns.append(new_pattern)
+    patterns.append(new_pattern)                 # 列を1本追加してやり直し
 
+# 最後に、生成された列だけを使って整数計画として解く
 lp_obj, _, _ = solve_master(patterns)
 ip_obj, ip_x, _ = solve_master(patterns, integer=True)
 print(f"LP下界={lp_obj:.3f} / 整数解={ip_obj:.0f} / 生成した列={len(patterns)}")
@@ -409,13 +311,22 @@ for p, v in zip(patterns, ip_x):
         print(f"  {p} x {v:.0f}  ロス{loss}mm")
 ```
 
-列生成の経過は PuLP版とまったく同じで、11反復・16列で LP最適 149.375 に到達します
-(最後の整数解は別の最適解が出ることもありますが、どちらも150本です)。
+`solve_master()` と `solve_pricing()` はどちらも十数行しかありません。
+列生成法の実装そのものは、この2つを交互に呼ぶだけです。
+
+### 実行結果
 
 ```txt
 [1] LP=177.500 被約費用=-0.3333 新パターン=[0, 2, 0, 1, 0, 0]
 [2] LP=162.500 被約費用=-0.2500 新パターン=[0, 0, 0, 3, 1, 0]
- (中略)
+[3] LP=161.250 被約費用=-0.1667 新パターン=[0, 0, 0, 0, 4, 1]
+[4] LP=156.875 被約費用=-0.0972 新パターン=[0, 0, 0, 1, 0, 5]
+[5] LP=155.417 被約費用=-0.0833 新パターン=[0, 1, 0, 0, 0, 4]
+[6] LP=154.808 被約費用=-0.0513 新パターン=[0, 1, 2, 0, 0, 0]
+[7] LP=152.377 被約費用=-0.0574 新パターン=[1, 0, 0, 1, 0, 2]
+[8] LP=150.192 被約費用=-0.0385 新パターン=[0, 0, 0, 0, 2, 4]
+[9] LP=149.881 被約費用=-0.0238 新パターン=[0, 0, 0, 2, 1, 2]
+[10] LP=149.821 被約費用=-0.0179 新パターン=[0, 1, 0, 0, 3, 0]
 [11] LP=149.375 被約費用=+0.0000 新パターン=[0, 0, 0, 0, 2, 4]
   -> LP最適に到達
 LP下界=149.375 / 整数解=150 / 生成した列=16
@@ -426,6 +337,24 @@ LP下界=149.375 / 整数解=150 / 生成した列=16
   [0, 0, 0, 2, 1, 2] x 9  ロス10mm
   [0, 1, 0, 0, 3, 0] x 25  ロス50mm
 ```
+
+![収束の様子](/images/column-generation/fig5_convergence.png)
+
+11回の反復で終了しました。追加した列は10本だけです。
+
+- 序盤の列は効果が大きく(1本足すだけで15本分の改善)、終盤になるほど効果が小さくなる
+- 被約費用が0になった時点で「もう改善する列は存在しない」ことが**証明**されて終了
+
+得られた解がこちらです。
+
+![列生成後の解](/images/column-generation/fig4_solution.png)
+
+| | 使用本数 | 歩留まり |
+| ---- | ---- | ---- |
+| 初期パターン(1品種詰め)のみ | 178本 | 83.5% |
+| **列生成 + 整数化** | **150本** | **99.1%** |
+
+同じ注文を、原反28本(約16%)少なく作れることになりました。
 
 ## SCIPの Pricer プラグインに列生成を任せる
 
@@ -691,7 +620,6 @@ graph TD
 ## 参考
 
 @[card](https://scmopt.github.io/opt100/)
-@[card](https://coin-or.github.io/pulp/)
 @[card](https://pyscipopt.readthedocs.io/en/latest/)
 
 - Gilmore, P. C., & Gomory, R. E. (1961). *A Linear Programming Approach to the Cutting-Stock Problem.* Operations Research. — 列生成法の原典で、まさにこのカッティングストック問題が題材です。
