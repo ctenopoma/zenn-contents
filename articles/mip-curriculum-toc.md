@@ -184,12 +184,14 @@ published: false
 @[card](https://zenn.dev/ctenopoma/articles/branch-and-price)
 - 列生成の分数解を整数にする正攻法。素朴な分枝が壊れる理由と、Ryan-Foster分枝。SCIPのプライサー実装
 
-### 5-3. 応用: 車両ルーティング(VRP)を分枝価格で解く 📝
+### 5-3. 応用: 車両ルーティング(VRP)を列生成で解く ✅
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-5-3-vrp)
 - **題材**: 容量制約つき配送計画
 - **学ぶこと**: 経路=列という見方。プライシング問題が資源制約つき最短路になる構図。実務でCGが選ばれる問題の共通形
 - **可視化**: 生成された経路(列)が地図上に増えていく様子
 
-### 5-4. Benders分解 〜 列生成の鏡写し 📝
+### 5-4. Benders分解 〜 列生成の鏡写し ✅
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-5-4-benders)
 - **題材**: 施設配置+輸送(配置を決めると輸送はLPで解ける構造)
 - **学ぶこと**: 行生成としてのBenders分解。列生成との双対関係。「決めると残りが簡単になる変数」を見つける目
 - **可視化**: マスター問題の下界とサブ問題の上界が挟み込んでいく収束図
