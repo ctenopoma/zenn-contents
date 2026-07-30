@@ -31,9 +31,10 @@ published: false
 - **学ぶこと**: 最適化問題の3要素。「解く」前に「書ける」ようになることの価値。LP / MIP / 非線形の地図
 - **可視化**: 問題クラスの全体地図(この教材で歩くルートを示す)
 
-### 0-2. SCIPを実行する環境の構築 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mixintegerprogramming_study_2)
-- SCIP + PySCIPOpt のセットアップ。以降すべての章の共通環境
+### 0-2. SCIP + PySCIPOpt 環境構築 📝
+- **題材**: 最初の1問(2行で書ける最小のLP)が動くまで
+- **学ぶこと**: SCIP + PySCIPOpt のセットアップ(pip / conda / uv)。以降すべての章の共通環境。動作確認とライセンスの注意点
+- **可視化**: なし(この章だけはセットアップに集中)
 
 ### 0-3. 解を「見る」道具立て 📝
 - **題材**: 小さな割当問題の解を、表・ガントチャート・ネットワーク図で描き分ける
@@ -212,7 +213,3 @@ published: false
 | ソルバー | SCIP | -- |
 | モデリング | PySCIPOpt | -- |
 | 可視化 | matplotlib ほか | -- |
-
-## 関連記事
-
-- 既存のまとめ記事: @[card](https://zenn.dev/ctenopoma/articles/mixintegerprogramming_study_1)
