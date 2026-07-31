@@ -1,2 +1,5 @@
 node_modules
 .DS_Store
+
+# 添削PDFをページ画像に展開した中間ファイル（再生成できるのでコミットしない）
+review/*/annotated/.pages/

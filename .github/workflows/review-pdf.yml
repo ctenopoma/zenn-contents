@@ -1,0 +1,89 @@
+name: review-pdf
+
+# articles/*.md を push したら、GoodNotes 添削用の PDF を自動生成して同じブランチに戻す。
+# iPad 側は「Working Copy で pull すれば常に最新の添削用 PDF がある」状態になる。
+#
+# review/** しか書き換えないので、このワークフロー自身の commit で再発火はしない
+# （トリガーの paths が articles/** に限定されているため）。
+
+on:
+  push:
+    paths:
+      - 'articles/**.md'
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: '生成する記事の slug（スペース区切り。空なら articles/ 全部）'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: review-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # PDF の日本語が豆腐になるのを防ぐ（review.css が IPAGothic を指定している）
+      - name: Install Japanese fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-ipafont-gothic
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve target slugs
+        id: targets
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.slugs }}" ]; then
+            slugs="${{ github.event.inputs.slugs }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            slugs=$(ls articles/*.md | xargs -n1 basename | sed 's/\.md$//' | tr '\n' ' ')
+          else
+            # push に含まれる articles/*.md の差分だけを対象にする
+            base="${{ github.event.before }}"
+            if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+              base="HEAD~1"
+            fi
+            slugs=$(git diff --name-only --diff-filter=d "$base" "${{ github.sha }}" -- 'articles/*.md' \
+              | xargs -r -n1 basename | sed 's/\.md$//' | tr '\n' ' ')
+          fi
+          echo "slugs=$slugs" >> "$GITHUB_OUTPUT"
+          echo "対象: ${slugs:-なし}"
+
+      - name: Build review PDFs
+        if: steps.targets.outputs.slugs != ''
+        run: npm run review -- ${{ steps.targets.outputs.slugs }}
+
+      - name: Commit
+        if: steps.targets.outputs.slugs != ''
+        run: |
+          set -euo pipefail
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add review/
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "review: 添削用PDFを更新 (${{ steps.targets.outputs.slugs }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${{ github.ref_name }}" && git push origin HEAD:"${{ github.ref_name }}" && exit 0
+            sleep $((2 ** i))
+          done
+          exit 1

@@ -1,0 +1,218 @@
+/* GoodNotes 添削用レイアウト
+   ・左 12mm : ブロック番号(¶N) の欄
+   ・中央     : 本文（行間широ広めで行間書き込みできる）
+   ・右 62mm  : 手書きコメント用の余白
+   触るときは MARGIN_MM (build-review-pdf.mjs) と対で調整すること。 */
+
+:root {
+  --gutter: 12mm;
+  --scribble: 62mm;
+  --rule: #c9c9c9;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'IPAGothic', 'Noto Sans CJK JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  font-size: 10.5pt;
+  line-height: 2;
+  color: var(--ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ---- 表紙 ---- */
+.cover {
+  break-after: page;
+  padding-right: var(--scribble);
+}
+.cover h1 {
+  font-size: 18pt;
+  line-height: 1.5;
+  margin: 0 0 6mm;
+}
+.cover dl {
+  display: grid;
+  grid-template-columns: 22mm 1fr;
+  gap: 1mm 3mm;
+  font-size: 9pt;
+  color: var(--muted);
+  margin: 0 0 8mm;
+}
+.cover dt {
+  font-weight: bold;
+}
+.cover dd {
+  margin: 0;
+  word-break: break-all;
+}
+.legend {
+  border: 0.4pt solid var(--rule);
+  padding: 4mm 5mm;
+  font-size: 9pt;
+  line-height: 1.9;
+}
+.legend h2 {
+  font-size: 10pt;
+  margin: 0 0 2mm;
+}
+.legend ul {
+  margin: 0;
+  padding-left: 4mm;
+}
+.legend code {
+  background: #f2f2f2;
+  padding: 0 1mm;
+}
+
+/* ---- 本文ブロック ---- */
+.block {
+  display: grid;
+  grid-template-columns: var(--gutter) 1fr var(--scribble);
+  column-gap: 3mm;
+  break-inside: avoid;
+  margin-bottom: 2mm;
+}
+.block.kind-code {
+  /* 長いコードは改ページを許す */
+  break-inside: auto;
+}
+.block .id {
+  font-size: 7.5pt;
+  color: var(--muted);
+  line-height: 2.6;
+  text-align: right;
+  user-select: none;
+}
+.block .body > *:first-child {
+  margin-top: 0;
+}
+.block .body > *:last-child {
+  margin-bottom: 0;
+}
+.block .scribble {
+  border-left: 0.4pt dashed var(--rule);
+}
+
+/* ---- Markdown 要素 ---- */
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.6;
+  margin: 4mm 0 1mm;
+}
+h1 {
+  font-size: 15pt;
+}
+h2 {
+  font-size: 13pt;
+  border-bottom: 0.8pt solid var(--rule);
+  padding-bottom: 1mm;
+}
+h3 {
+  font-size: 11.5pt;
+}
+h4 {
+  font-size: 10.5pt;
+}
+p,
+ul,
+ol {
+  margin: 0 0 1mm;
+}
+ul,
+ol {
+  padding-left: 6mm;
+}
+li {
+  margin-bottom: 0.5mm;
+}
+a {
+  color: #1f5fa0;
+  text-decoration: none;
+  word-break: break-all;
+}
+blockquote {
+  margin: 1mm 0;
+  padding-left: 4mm;
+  border-left: 1.2pt solid var(--rule);
+  color: var(--muted);
+}
+code {
+  font-family: 'DejaVu Sans Mono', monospace;
+  font-size: 9pt;
+  background: #f4f4f4;
+  padding: 0 1mm;
+}
+pre {
+  background: #f7f7f7;
+  border: 0.4pt solid #e2e2e2;
+  padding: 2mm 3mm;
+  margin: 1mm 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 8.5pt;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+table {
+  border-collapse: collapse;
+  font-size: 9pt;
+  line-height: 1.6;
+}
+th,
+td {
+  border: 0.4pt solid var(--rule);
+  padding: 1mm 2mm;
+}
+th {
+  background: #f4f4f4;
+}
+hr {
+  border: none;
+  border-top: 0.4pt solid var(--rule);
+  margin: 3mm 0;
+}
+
+/* Zenn の ::: 記法 */
+.zenn-container {
+  border: 0.4pt solid var(--rule);
+  border-left: 1.5mm solid #b9c6d4;
+  background: #fafbfc;
+  padding: 2mm 3mm;
+  margin: 1mm 0;
+}
+.zenn-container.name-alert {
+  border-left-color: #d9a5a5;
+  background: #fdf8f8;
+}
+.zenn-container > .label {
+  font-size: 8pt;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 1mm;
+}
+.zenn-card {
+  border: 0.4pt solid var(--rule);
+  padding: 1.5mm 3mm;
+  font-size: 9pt;
+  margin: 1mm 0;
+}
+
+.katex-display {
+  margin: 2mm 0;
+  overflow-x: hidden;
+}
