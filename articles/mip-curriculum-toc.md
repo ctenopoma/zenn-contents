@@ -1,20 +1,20 @@
 ---
-title: "SCIPで学ぶ数理最適化 〜 大学1年レベルから分枝価格法・最新の実務技術まで(教材目次)"
+title: "SCIPで学ぶ数理最適化"
 emoji: "🗺️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [数理最適化, 混合整数最適化, SCIP, Python, PySCIPOpt]
-published: false
+published: true
 ---
 
 ## この教材について
 
-数理最適化を **大学1年レベルの前提知識から始めて、列生成法・分枝価格法、さらに最新の実務技術まで** 一本の道で繋げる連載の目次です。
+**MIP**(Mixed Integer Programming)に関する数理最適化をSCIPで学んでいく連載の目次です。
 
 方針は3つ。
 
-- **終始 SCIP(PySCIPOpt)を使う。** 途中でソルバーを乗り換えない。教材の前半で覚えた書き方が、最後のカスタムプライサーまでそのまま通用する
-- **実例で進める。** 各章に必ず1つ、実務由来の題材(生産計画、シフト、配送、切り出し……)を置く。数学は「その題材を解くのに必要だから」出てくる
-- **可視化しながら進める。** 実行可能領域、探索木、双対価格、ギャップの推移──言葉で済ませず、毎回絵にする
+- **SCIP(PySCIPOpt)を使う**
+- **実例で進める** 
+- **可視化しながら進める**
 
 数学的な厳密さより、**実務で使うための理解**を優先します。定理の証明はしませんが、「なぜそうなるのか」を実測と図で必ず確認します。
 
@@ -27,125 +27,125 @@ published: false
 ## 第0部 準備編 〜 道具を揃える
 
 ### 0-1. 数理最適化は実務のどこにいるのか ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-1-intro)
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-1-intro) -->
 - **題材**: 配送ルート、勤務シフト、生産計画、広告予算配分──身近な業務を「変数・制約・目的関数」の言葉に翻訳してみる
-- **学ぶこと**: 最適化問題の3要素。「解く」前に「書ける」ようになることの価値。LP / MIP / 非線形の地図
-- **可視化**: 問題クラスの全体地図(この教材で歩くルートを示す)
+- **学ぶこと**: 最適化問題の3要素
+- **可視化**: 学習ロードマップ
 
-### 0-2. SCIP + PySCIPOpt 環境構築 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-2-setup)
+### 0-2. SCIP + PySCIPOpt 環境構築 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-2-setup) -->
 - **題材**: 最初の1問(2行で書ける最小のLP)が動くまで
-- **学ぶこと**: SCIP + PySCIPOpt のセットアップ(pip / conda / uv)。以降すべての章の共通環境。動作確認とライセンスの注意点
-- **可視化**: なし(この章だけはセットアップに集中)
+- **学ぶこと**: SCIP + PySCIPOpt のセットアップ(pip / conda / uv)。以降すべての章の共通環境。
+- **可視化**: なし
 
-### 0-3. 解を「見る」道具立て ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-3-visualization)
+### 0-3. 解を「見る」道具立て 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-3-visualization) -->
 - **題材**: 小さな割当問題の解を、表・ガントチャート・ネットワーク図で描き分ける
 - **学ぶこと**: matplotlib で最適化の解を可視化する定型パターン。以降の章で使い回す描画関数群をここで作る
 - **可視化**: この教材の可視化スタイルガイドそのもの
 
 ---
 
-## 第1部 線形計画(LP)編 〜 大学1年の数学で最適化する
+## 第1部 線形計画(LP)編
 
-高校数学の「領域」と連立一次方程式だけを前提に、線形計画を絵で理解する部です。
+連立一次方程式を前提に、線形計画を理解します。
 
-### 1-1. 2変数の生産計画を絵で解く ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical)
+### 1-1. 2変数の生産計画を絵で解く 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical) -->
 - **題材**: 2製品の生産計画(材料と労働時間の制約で利益最大化)
 - **学ぶこと**: 実行可能領域、目的関数の等高線、最適解が頂点に来る理由。同じ問題をPySCIPOptで書いて答え合わせ
 - **可視化**: 実行可能領域と等高線のスライダーアニメーション
 
-### 1-2. 定式化の文法 〜 変数・制約・目的関数をコードで書く ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-2-modeling)
+### 1-2. 定式化の文法 〜 変数・制約・目的関数をコードで書く 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-2-modeling) -->
 - **題材**: 栄養問題(最小コストで栄養基準を満たす献立)
 - **学ぶこと**: PySCIPOptのモデリングAPI一通り。添字集合・パラメータ・変数をデータから組み立てる実務の書き方(ハードコードからの卒業)
 - **可視化**: 制約行列のヒートマップ(疎な行列を「見る」)
 
-### 1-3. 単体法の気持ち 〜 頂点を渡り歩く ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-3-simplex)
+### 1-3. 単体法の気持ち 〜 頂点を渡り歩く 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-3-simplex) -->
 - **題材**: 1-1の生産計画を3変数に拡張
 - **学ぶこと**: 単体法が「隣の頂点へ改善しながら移動する」アルゴリズムであること。中身を全部追う必要はないが、後の列生成で「被約費用」が出てきたとき困らない程度の中身
 - **可視化**: 3D多面体の上を動く探索パスのアニメーション
 
-### 1-4. 双対問題とシャドウプライス 〜 制約1単位の値段 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-4-duality)
+### 1-4. 双対問題とシャドウプライス 〜 制約1単位の値段 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-4-duality) -->
 - **題材**: 生産計画で「材料をあと1kg調達できるなら、いくらまで払えるか?」
 - **学ぶこと**: 双対問題の作り方と実務解釈。双対価格=資源の限界価値。**列生成法の心臓部なので、この教材で最も丁寧にやる章**
 - **可視化**: 制約をずらしたときの最適値の変化(感度のグラフ)と双対価格の一致
 
-### 1-5. 感度分析とパラメータの不確かさ ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-5-sensitivity)
+### 1-5. 感度分析とパラメータの不確かさ 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-5-sensitivity) -->
 - **題材**: 需要予測が±20%ブレる生産計画
 - **学ぶこと**: 感度分析の読み方、パラメータを振って解の安定性を見る実務の作法(シナリオ分析)
 - **可視化**: パラメータ掃引に対する最適解・最適値の推移
 
 ---
 
-## 第2部 混合整数計画(MIP)基礎編 〜 整数が入ると世界が変わる
+## 第2部 混合整数計画(MIP)基礎編
 
-### 2-1. 「丸めればいい」が失敗するとき ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-2-1-rounding)
+### 2-1. 「丸めればいい」が失敗するとき 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-2-1-rounding) -->
 - **題材**: 機械の台数決定(0.7台は買えない)、ナップサック問題
 - **学ぶこと**: LPの解を丸めると実行不能・大損する具体例。整数制約の計算的な難しさ(なぜNP困難という言葉があるのか、実務目線で)
 - **可視化**: LP最適解・丸め解・真の整数最適解の位置関係を格子点付きで描く
 
-### 2-2. 分枝限定法を絵で理解する ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-2-2-branch-and-bound)
+### 2-2. 分枝限定法を絵で理解する 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-2-2-branch-and-bound) -->
 - **題材**: 小さなナップサック問題を手で分枝する
 - **学ぶこと**: 分枝・限定・刈り込み。上界と下界、ギャップの意味。「最適性の証明」とは何をしていることなのか
 - **可視化**: 探索木が成長するアニメーション(SCIPの実際の探索木をログから復元)
 
-### 2-3. SCIPのログを一行ずつ読む ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-2-3-scip-log)
+### 2-3. SCIPのログを一行ずつ読む 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-2-3-scip-log) -->
 - **題材**: 2-2の問題+中規模のベンチマーク問題
 - **学ぶこと**: gap、bound、nodeの読み方。「時間切れだが良い解は出ている」を判断できるようになる。時間制限・ギャップ許容の実務設定
 - **可視化**: 上界・下界の収束グラフ(ログのパース方法も込みで)
 
-### 2-4. バイナリ変数のロジック定式化パターン集(前編) ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-2-4-logic)
+### 2-4. バイナリ変数のロジック定式化パターン集(前編) 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-2-4-logic) -->
 - **題材**: 設備のON/OFF、メニューの排他選択、「AならばB」の業務ルール
 - **学ぶこと**: if-then、either-or、選択制約、Big-M法とその危険性、SCIPのindicator制約
 - **可視化**: Big-Mの大きさと緩和の弱さの関係を実測で
 
-### 2-5. 定式化パターン集(後編) 〜 固定費・区分線形・ロット ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-2-5-piecewise)
+### 2-5. 定式化パターン集(後編) 〜 固定費・区分線形・ロット 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-2-5-piecewise) -->
 - **題材**: 固定費つき輸送問題、数量割引のある調達
 - **学ぶこと**: 固定費モデル、区分線形近似、半連続変数。非線形な現実を線形+整数で表す技術
 - **可視化**: 区分線形近似の精度と変数数のトレードオフ
 
 ---
 
-## 第3部 実務の定番問題編 〜 パターンを手に馴染ませる
+## 第3部 実務の定番問題編
 
 各章とも「定式化 → 求解 → 可視化 → スケールさせると何が起きるか」の流れで進めます。
 
-### 3-1. 割当問題 〜 人と仕事のマッチング ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-3-1-assignment)
+### 3-1. 割当問題 〜 人と仕事のマッチング 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-3-1-assignment) -->
 - **題材**: 作業員とタスクの割当(スキル適性つき)
 - **学ぶこと**: 割当問題。実は整数制約なしでも整数解が出る(完全単模性)という驚きと、その恩恵が壊れる瞬間
 - **可視化**: 二部グラフのマッチング図
 
-### 3-2. シフトスケジューリング ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-3-2-shift)
+### 3-2. シフトスケジューリング 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-3-2-shift) -->
 - **題材**: コンビニ/コールセンターの週次シフト(必要人数、連勤上限、希望休)
 - **学ぶこと**: カバー制約、連続性の制約、ソフト制約とペナルティ設計。「実行不能です」と言われたときのデバッグ手順(IIS)
 - **可視化**: シフト表のヒートマップ、制約違反ペナルティの内訳
 
-### 3-3. 巡回セールスマン問題(TSP) 〜 制約が指数個ある問題 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-3-3-tsp)
+### 3-3. 巡回セールスマン問題(TSP) 〜 制約が指数個ある問題 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-3-3-tsp) -->
 - **題材**: 配送先30件の巡回ルート
 - **学ぶこと**: 部分巡回路除去制約は指数個ある→**必要になった制約だけ後から足す**(遅延制約生成)。SCIPのコールバック(constraint handler)入門
 - **可視化**: 部分巡回路が潰されてルートが繋がっていくアニメーション
 
-### 3-4. ロットサイジング 〜 生産計画の教科書問題 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-3-4-lotsizing)
+### 3-4. ロットサイジング 〜 生産計画の教科書問題 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-3-4-lotsizing) -->
 - **題材**: 段取り費用つき多期間生産計画
 - **学ぶこと**: 在庫の流れの定式化、時間展開ネットワーク。定式化の強弱で解ける規模が桁で変わる実例(facility location型再定式化)
 - **可視化**: 在庫・生産量の時系列プロット、2つの定式化の求解時間比較
 
-### 3-5. ビンパッキングとカッティングストック 〜 列生成への入口 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-3-5-binpacking)
+### 3-5. ビンパッキングとカッティングストック 〜 列生成への入口 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-3-5-binpacking) -->
 - **題材**: トラック積載/原反切り出し
 - **学ぶこと**: 素直な定式化の対称性という病。対称性除去テクニック。それでも残る限界──**「変数の方が指数個ある」世界への渡し舟**
 - **可視化**: 対称な解の同型性、緩和ギャップの比較
@@ -154,83 +154,77 @@ published: false
 
 ## 第4部 強い定式化と切除平面編 〜 なぜ同じ問題で速度が1000倍違うのか
 
-### 4-1. 緩和の強さという物差し ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-4-1-strength)
+### 4-1. 緩和の強さという物差し 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-4-1-strength) -->
 - **題材**: これまでの章の題材を「LP緩和の質」で総ざらい
 - **学ぶこと**: 整数包(integer hull)、定式化の強弱の定義。「良い定式化」を選ぶ判断基準
 - **可視化**: 同じ整数解集合を囲む強い/弱い多面体の重ね描き
 
-### 4-2. 切除平面と分枝カット法 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-4-2-cuts)
+### 4-2. 切除平面と分枝カット法 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-4-2-cuts) -->
 - **題材**: ナップサックのカバー不等式、TSP(3-3)の再訪
 - **学ぶこと**: 妥当不等式、分離問題。SCIPが内部でやっている branch-and-cut の実像。自作カットをSCIPに追加する方法
 - **可視化**: カットが分数解を切り落とす瞬間の図
 
-### 4-3. 前処理・対称性・数値の落とし穴 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-4-3-pitfalls)
+### 4-3. 前処理・対称性・数値の落とし穴 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-4-3-pitfalls) -->
 - **題材**: 「手元では解けたのに本番データで終わらない」事故の再現
 - **学ぶこと**: presolveが何をしているか、対称性除去、Big-Mと数値誤差、実行可能性トレランス。実務のトラブルシューティング集
 - **可視化**: presolve前後の問題サイズ・求解時間の比較
 
 ---
 
-## 第5部 列生成法・分枝価格法編 〜 変数が指数個ある世界
+## 第5部 列生成法・分枝価格法編
 
-### 5-1. 図で理解する列生成法 ✅
-@[card](https://zenn.dev/ctenopoma/articles/column-generation)
+### 5-1. 図で理解する列生成法 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/column-generation) -->
 - カッティングストックを題材に、パターン定式化+列生成を実装。双対価格(1-4)と被約費用(1-3)がここで回収される
 
-### 5-2. 図で理解する分枝価格法 ✅
-@[card](https://zenn.dev/ctenopoma/articles/branch-and-price)
+### 5-2. 図で理解する分枝価格法 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/branch-and-price) -->
 - 列生成の分数解を整数にする正攻法。素朴な分枝が壊れる理由と、Ryan-Foster分枝。SCIPのプライサー実装
 
-### 5-3. 応用: 車両ルーティング(VRP)を列生成で解く ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-5-3-vrp)
+### 5-3. 応用: 車両ルーティング(VRP)を列生成で解く 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-5-3-vrp) -->
 - **題材**: 容量制約つき配送計画
 - **学ぶこと**: 経路=列という見方。プライシング問題が資源制約つき最短路になる構図。実務でCGが選ばれる問題の共通形
 - **可視化**: 生成された経路(列)が地図上に増えていく様子
 
-### 5-4. Benders分解 〜 列生成の鏡写し ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-5-4-benders)
+### 5-4. Benders分解 〜 列生成の鏡写し 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-5-4-benders) -->
 - **題材**: 施設配置+輸送(配置を決めると輸送はLPで解ける構造)
 - **学ぶこと**: 行生成としてのBenders分解。列生成との双対関係。「決めると残りが簡単になる変数」を見つける目
 - **可視化**: マスター問題の下界とサブ問題の上界が挟み込んでいく収束図
 
 ---
 
-## 第6部 最新技術と実務運用編 〜 現場で戦うために
+## 第6部 最新技術と実務運用編
 
-### 6-1. MIPヒューリスティクスと大規模近傍探索(LNS) ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-6-1-lns)
+### 6-1. MIPヒューリスティクスと大規模近傍探索(LNS) 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-6-1-lns) -->
 - **題材**: 時間内に最適が証明できない規模のシフト問題
 - **学ぶこと**: warm start、解プール、RINSなどのMIPヒューリスティクス、fix-and-optimize / LNSの実装。「最適性より締切」の実務戦略
 - **可視化**: 制限時間内の解品質の推移(戦略別の比較)
 
-### 6-2. SCIPを拡張する 〜 プラグイン開発 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-6-2-plugins)
+### 6-2. SCIPを拡張する 〜 プラグイン開発 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-6-2-plugins) -->
 - **題材**: これまで書いたコールバック(3-3のconshdlr、5-2のpricer)の体系的整理+自作ヒューリスティクス・自作分枝規則
 - **学ぶこと**: SCIPのプラグインアーキテクチャ全体像。「ソルバーを使う人」から「ソルバーを組み込む人」へ
 - **可視化**: SCIPの求解ループとプラグインの介入ポイントの図解
 
-### 6-3. 機械学習 × MIP の現在地 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-6-3-ml)
+### 6-3. 機械学習 × MIP の現在地 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-6-3-ml) -->
 - **題材**: learning to branch、ML による初期解生成、予測+最適化(predict-then-optimize)
 - **学ぶこと**: ML4CO分野の概観と、実務で今すぐ効く部分/まだ研究段階の部分の切り分け
 - **可視化**: 手法マップと、簡単な実験(学習した分枝規則 vs デフォルト)
 
-### 6-4. 最適化プロジェクトの進め方 ✅
-@[card](https://zenn.dev/ctenopoma/articles/mip-course-6-4-project)
+### 6-4. 最適化プロジェクトの進め方 📝
+<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-6-4-project) -->
 - **題材**: 架空の導入プロジェクトを通しで(要件→定式化→検証→運用)
 - **学ぶこと**: データ検証、制約の聞き出し方、実行不能への備え、解の説明責任、モデルの保守。技術以外で最適化案件が失敗する理由
 - **可視化**: プロジェクト全体のワークフロー図
 
 ---
-
-## 学習ルートの案内
-
-- **とにかく実務で使いたい**: 0-2 → 1-2 → 2-1 → 2-3 → 2-4 → 第3部の関心ある題材
-- **列生成法・分枝価格法が目標**: 1-3 → 1-4 → 3-5 → 5-1 → 5-2 が最短路
-- **大学1年生・初学者**: 第0部から順番に。第1部を飛ばさないこと(双対がすべての伏線)
 
 ## 環境
 
