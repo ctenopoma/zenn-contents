@@ -16,11 +16,14 @@ iPad            GoodNotes で開く → 右の余白に手書き添削 → PDF �
   │
   │  Working Copy の review/<slug>/annotated/ に保存して commit & push
   ▼
-Claude          /apply-review <slug>   → PNG化して読む → Markdown に反映 → push
+Claude          PNG化して読む → 読み取り結果を提示 → Markdown に反映 → push
+                起動は /apply-review・Routine・GitHub Actions のいずれか（「4.」参照）
 ```
 
 やり取りの経路は **GitHub リポジトリ 1 本だけ**。
-Dropbox も API トークンも要らないし、Claude のセッションが消えても状態はリポジトリに残る。
+Dropbox も要らないし、Claude のセッションが消えても状態はリポジトリに残る。
+既定の構成では **GitHub に API キーを置く必要もない**（置くのは「4. の C」だけ。
+その場合のキーの守り方は「APIキーを漏らさないための設計」に書いた）。
 
 ---
 
@@ -115,6 +118,16 @@ npm run review -- mip-course-6-1-lns
 
 ## 4. 添削を記事に反映する
 
+反映の起動には 3 通りある。**A が一番安全**（GitHub に API キーを置かなくて済む）。
+
+| | 起動方法 | GitHub に置く秘密情報 |
+| --- | --- | --- |
+| A | 自分で Claude に `/apply-review` と言う | なし |
+| B | Claude Code on the web の Routine で定期チェックさせる | なし |
+| C | GitHub Actions で push をトリガーに自動実行 | `ANTHROPIC_API_KEY` |
+
+### A. 手動（既定）
+
 Claude に:
 
 ```
@@ -131,6 +144,97 @@ Claude に:
 6. `applied.json` に記録して commit & push
 
 判読できなかった手書きは推測で埋めず `【判読不能】` として報告するようにしてある。
+
+### B. Routine で定期チェック（キー不要）
+
+Claude Code on the web のセッションで、
+
+> 30分おきに未反映の添削PDFがないか見て、あったら /apply-review して
+
+と頼めば Routine（スケジュール実行）が作られる。認証情報は Anthropic 側に閉じていて、
+**GitHub には何も置かない**。iPad から push したあと放っておけば反映される。
+
+### C. GitHub Actions で自動実行（キーが要る）
+
+`.github/workflows/apply-review.yml`。`review/*/annotated/*.pdf` の push で発火し、
+Claude が読み取り → 記事を修正 → **PR を立てる**（ブランチに直接 push はしない）。
+マージ前に `review/<slug>/reading-*.md` で読み取り結果を確認する運用。
+
+有効にするには GitHub の Settings → Secrets and variables → Actions に
+`ANTHROPIC_API_KEY` を登録する。キーの扱いは次節。
+
+---
+
+## APIキーを漏らさないための設計
+
+`apply-review.yml` は、キーが漏れうる経路を潰す形で組んである。
+
+**1. キーを渡すのは 1 ステップだけ**
+
+ワークフロー/ジョブレベルの `env:` には絶対に置かない。そこに置くと、
+全ステップ・そのジョブが呼ぶ**すべての third-party action** から読めてしまう。
+`anthropic_api_key:` を書いてあるのは "Apply handwritten review" ステップだけ。
+
+**2. そのステップの Claude に、外へ出す手段を与えていない**
+
+```yaml
+--allowedTools "Read,Edit,Write,Glob,Grep"
+--disallowedTools "Bash,WebFetch,WebSearch,Task"
+```
+
+キーはどうしてもプロセス環境には載る（CLI がそれで認証するので）。
+なので**シェルもネットワークツールも与えない**のが実効的な防御になる。
+`git commit` / `push` / PR 作成は、キーを持たない後続ステップがやる。
+
+**3. GITHUB_TOKEN も Claude から見えないようにする**
+
+`actions/checkout` は既定で GITHUB_TOKEN を `.git/config` に書き込む。
+Read ツールがあれば読めてしまうので `persist-credentials: false` にしてある。
+token を使うのは、Claude ステップより後ろのステップだけ。
+
+**4. 手書き文字は「データ」であって「指示」ではない**
+
+PDF に写った文字を Claude が指示として実行しないよう、プロンプトで明示している。
+記事の推敲以外の要求（コマンド実行・外部送信・認証情報の出力・ワークフローの改変）が
+書かれていたら、実行せず `reading-*.md` に「不審な指示」として記録するだけにする。
+2 のツール制限は、この指示が破られた場合の第二の壁でもある。
+
+**5. ログに出さない**
+
+`echo` しない、`set -x` しない、`--debug` を付けない、ログを artifact に上げない、
+`ACTIONS_STEP_DEBUG` を有効にしない。GitHub は secret をマスクするが、
+**base64 などで加工されるとマスクは破れる**ので、そもそも触らせないのが前提。
+
+**6. fork からは動かない**
+
+`push` イベントは自分のリポジトリのブランチでしか発火せず、fork の PR に secret は渡らない。
+加えて `if: github.repository == 'ctenopoma/zenn-contents'` で二重に止めてある。
+なお `pull_request_target` は fork のコードを base のコンテキストで動かせてしまうので、
+このリポジトリでは**使わないこと**。
+
+### まだやっていない、やるとなお良いこと
+
+- **action をコミット SHA で固定する。** 現状は `@v4` `@v1` の可変タグ。
+  タグは差し替え可能なので、供給元が乗っ取られると任意コードがジョブ内で動く＝キーが読める。
+
+  ```bash
+  gh api repos/anthropics/claude-code-action/commits/v1 --jq .sha
+  gh api repos/actions/checkout/commits/v4 --jq .sha
+  ```
+
+  で得た SHA を `uses: anthropics/claude-code-action@<sha>  # v1` の形に書き換える。
+
+- **Environment secret にする。** Settings → Environments で `claude` を作り、
+  Deployment branches を自分のブランチに限定したうえで、そこに `ANTHROPIC_API_KEY` を置く。
+  ワークフロー側は `environment: claude` のコメントを外す。
+  任意のブランチのワークフローからキーを引ける状態がなくなる。
+
+- **専用キーにする。** Anthropic Console で Actions 専用のキーを 1 本切り、
+  spend limit を付ける。個人利用のキーと分けておけば、失効させても手元が壊れない。
+
+- **定期ローテーション。** 漏れていなくても数ヶ月で切り替える。
+
+いずれも「キーを置かない」A / B を選べば不要になる。
 
 ---
 
@@ -159,4 +263,5 @@ Claude に:
 | `tools/review/record-applied.mjs` | 反映済み台帳への記録 |
 | `.claude/commands/review-pdf.md` | `/review-pdf` |
 | `.claude/commands/apply-review.md` | `/apply-review` |
-| `.github/workflows/review-pdf.yml` | push 時の PDF 自動生成 |
+| `.github/workflows/review-pdf.yml` | push 時の PDF 自動生成（キー不要） |
+| `.github/workflows/apply-review.yml` | 添削 PDF の push で自動反映 → PR（`ANTHROPIC_API_KEY` が要る） |

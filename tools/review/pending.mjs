@@ -3,6 +3,7 @@
  * 未反映の添削 PDF を探して、ページ画像に展開する。
  *
  *   node tools/review/pending.mjs [slug]
+ *   node tools/review/pending.mjs [slug] --list   … PDF のパスだけを出す（CI 用）
  *
  * review/<slug>/annotated/*.pdf のうち applied.json に載っていないものが対象。
  * 展開先の .pages/ は .gitignore 済み（PNG をコミットしても意味がないため）。
@@ -50,7 +51,9 @@ function rasterize(pdf, outDir) {
 }
 
 function main() {
-  const filter = process.argv[2];
+  const argv = process.argv.slice(2);
+  const listOnly = argv.includes('--list');
+  const filter = argv.find((a) => !a.startsWith('--'));
   let found = 0;
 
   for (const slug of listSlugs(filter)) {
@@ -68,6 +71,10 @@ function main() {
 
     for (const pdf of pdfs) {
       found++;
+      if (listOnly) {
+        console.log(path.relative(ROOT, pdf));
+        continue;
+      }
       const outDir = path.join(dir, '.pages', path.basename(pdf, path.extname(pdf)));
       fs.rmSync(outDir, { recursive: true, force: true });
       const pages = rasterize(pdf, outDir);
@@ -79,7 +86,7 @@ function main() {
     }
   }
 
-  if (found === 0) console.log('未反映の添削 PDF はありません。');
+  if (found === 0 && !listOnly) console.log('未反映の添削 PDF はありません。');
 }
 
 // record-applied.mjs から関数を import しても main が走らないようにする
