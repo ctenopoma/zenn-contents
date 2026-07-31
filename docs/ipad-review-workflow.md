@@ -118,15 +118,15 @@ npm run review -- mip-course-6-1-lns
 
 ## 4. 添削を記事に反映する
 
-反映の起動には 3 通りある。**A が一番安全**（GitHub に API キーを置かなくて済む）。
+反映の起動には 3 通りある。**このリポジトリは A を採用している**（GitHub に API キーを置かない）。
 
-| | 起動方法 | GitHub に置く秘密情報 |
-| --- | --- | --- |
-| A | 自分で Claude に `/apply-review` と言う | なし |
-| B | Claude Code on the web の Routine で定期チェックさせる | なし |
-| C | GitHub Actions で push をトリガーに自動実行 | `ANTHROPIC_API_KEY` |
+| | 起動方法 | GitHub に置く秘密情報 | 状態 |
+| --- | --- | --- | --- |
+| **A** | **自分で Claude に `/apply-review` と言う** | **なし** | **採用中** |
+| B | Claude Code on the web の Routine で定期チェックさせる | なし | 未設定 |
+| C | GitHub Actions で push をトリガーに自動実行 | `ANTHROPIC_API_KEY` | 休止中 |
 
-### A. 手動（既定）
+### A. 手動（採用中）
 
 Claude に:
 
@@ -154,18 +154,27 @@ Claude Code on the web のセッションで、
 と頼めば Routine（スケジュール実行）が作られる。認証情報は Anthropic 側に閉じていて、
 **GitHub には何も置かない**。iPad から push したあと放っておけば反映される。
 
-### C. GitHub Actions で自動実行（キーが要る）
+### C. GitHub Actions で自動実行（キーが要る / いまは休止中）
 
 `.github/workflows/apply-review.yml`。`review/*/annotated/*.pdf` の push で発火し、
 Claude が読み取り → 記事を修正 → **PR を立てる**（ブランチに直接 push はしない）。
 マージ前に `review/<slug>/reading-*.md` で読み取り結果を確認する運用。
 
-有効にするには GitHub の Settings → Secrets and variables → Actions に
-`ANTHROPIC_API_KEY` を登録する。キーの扱いは次節。
+**現在は自動発火を外してある**（`on:` の push トリガーをコメントアウト）。
+GitHub にキーを置いていないので、有効なままだと添削を push するたびに失敗して赤くなるため。
+
+有効にするなら:
+
+1. Settings → Secrets and variables → Actions に `ANTHROPIC_API_KEY` を登録
+2. `apply-review.yml` の `on:` の push トリガーのコメントを外す
+3. 次節を読み、最低でも **action の SHA 固定**と **Environment secret 化**はやってから有効にする
 
 ---
 
 ## APIキーを漏らさないための設計
+
+C を有効にするときのための節。**A で運用しているうちは、この節の内容は不要**
+（GitHub に置く秘密情報が無いため）。
 
 `apply-review.yml` は、キーが漏れうる経路を潰す形で組んである。
 
@@ -264,4 +273,4 @@ PDF に写った文字を Claude が指示として実行しないよう、プ�
 | `.claude/commands/review-pdf.md` | `/review-pdf` |
 | `.claude/commands/apply-review.md` | `/apply-review` |
 | `.github/workflows/review-pdf.yml` | push 時の PDF 自動生成（キー不要） |
-| `.github/workflows/apply-review.yml` | 添削 PDF の push で自動反映 → PR（`ANTHROPIC_API_KEY` が要る） |
+| `.github/workflows/apply-review.yml` | 添削 PDF の push で自動反映 → PR（休止中。`ANTHROPIC_API_KEY` が要る） |

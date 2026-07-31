@@ -1,5 +1,18 @@
 name: apply-review
 
+# ⚠ このワークフローは現在 *休止中* です。
+#
+# 添削の反映は、Claude に `/apply-review` と言う手動運用（docs の「4. A」）を採っています。
+# そのため GitHub には ANTHROPIC_API_KEY を置いていません。自動発火(push トリガー)を
+# 外してあるので、キーが無い状態で赤くなり続けることはありません。
+#
+# 自動化に切り替えたくなったら:
+#   1. Settings → Secrets and variables → Actions に ANTHROPIC_API_KEY を登録
+#   2. 下の `on:` に push トリガーを戻す（コメントアウトしてある）
+#   3. docs/ipad-review-workflow.md の「APIキーを漏らさないための設計」を読み、
+#      最低でも action のコミット SHA 固定と Environment secret 化はやってから有効にする
+#
+# ── 以下、有効化したときの挙動と設計 ────────────────────────
 # iPad から添削済み PDF が push されたら、Claude に読ませて記事へ反映し、PR を立てる。
 #
 # ── APIキーの扱いについて（設計の意図）─────────────────────────────
@@ -20,10 +33,11 @@ name: apply-review
 # ───────────────────────────────────────────────────────────
 
 on:
-  push:
-    paths:
-      - 'review/*/annotated/*.pdf'
-      - 'review/*/annotated/*.PDF'
+  # 休止中のため自動発火はしない。有効化するときは以下のコメントを外す。
+  # push:
+  #   paths:
+  #     - 'review/*/annotated/*.pdf'
+  #     - 'review/*/annotated/*.PDF'
   workflow_dispatch:
 
 # 既定では何の権限も与えない。必要な権限はジョブ側で最小限だけ付ける。
@@ -82,6 +96,18 @@ jobs:
             node tools/review/pending.mjs
           else
             echo "未反映の添削 PDF はありません。"
+          fi
+
+      # 手動実行されたがキー未登録、という場合に分かりやすく止める。
+      # secret の「値」ではなく「空かどうか」だけを渡す（値を run: に展開しない）。
+      - name: Check API key is configured
+        if: steps.pending.outputs.count != '0'
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::error::ANTHROPIC_API_KEY が未登録です。手動運用(/apply-review)のままならこのワークフローは実行不要です。"
+            exit 1
           fi
 
       # ── ここだけが ANTHROPIC_API_KEY を受け取る ──
