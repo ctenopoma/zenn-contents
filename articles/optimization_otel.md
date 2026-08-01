@@ -277,4 +277,4 @@ opentelemetry-sdk 1.44 では `LogRecord` はSDK側(`opentelemetry.sdk._logs`)�
 
 実装一式(ソルバー計装・campaignドライバ・Alloy/Tempo/Loki/Prometheus/Grafanaのdocker compose・provisioning済みダッシュボード)はGitHubで公開しています:
 
-https://github.com/ctenopoma/minlpkit
+@[card](https://github.com/ctenopoma/minlpkit)
