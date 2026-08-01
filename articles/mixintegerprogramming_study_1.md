@@ -3,7 +3,7 @@ title: "混合整数最適化の記事まとめ"
 emoji: "📚"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [混合整数最適化, Python]
-published: True
+published: false
 ---
 
 ## 環境

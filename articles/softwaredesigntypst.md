@@ -3,7 +3,7 @@ title: "Typstで書くソフトウェア設計書のテンプレート"
 emoji: "📝"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [typst]
-published: true
+published: false
 ---
 
 ### 注意

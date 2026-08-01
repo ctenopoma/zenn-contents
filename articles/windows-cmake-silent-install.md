@@ -3,7 +3,7 @@ title: "Windows11でCmakeをコマンドプロンプトからインストール"
 emoji: "💨"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["cmake", "Tech", "scip"]
-published: true
+published: false
 ---
 
 # 1.目的

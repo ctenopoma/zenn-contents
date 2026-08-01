@@ -3,7 +3,7 @@ title: "SCIPを実行する環境の構築"
 emoji: "🕌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [混合整数最適化, Python, SCIP]
-published: True
+published: false
 ---
 
 ### 前提

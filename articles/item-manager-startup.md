@@ -3,7 +3,7 @@ title: "物品管理システムをDjangoで作ろう（その１）"
 emoji: "🦁"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [システム開発, django]
-published: true
+published: false
 ---
 
 ## 目的

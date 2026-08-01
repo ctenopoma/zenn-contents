@@ -3,7 +3,7 @@ title: "Skill-Based Reinforcement Learningについて調べてみた"
 emoji: "🐡"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [強化学習]
-published: True
+published: false
 ---
 ## 1. はじめに
 skill-based reinforcement learningについて調べてみた。
