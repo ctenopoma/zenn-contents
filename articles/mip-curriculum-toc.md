@@ -1,5 +1,5 @@
 ---
-title: "SCIPで学ぶ数理最適化"
+title: "#0 SCIPで学ぶ数理最適化"
 emoji: "🗺️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [数理最適化, 混合整数最適化, SCIP, Python, PySCIPOpt]
@@ -27,19 +27,19 @@ published: true
 ## 第0部 準備編 〜 道具を揃える
 
 ### 0-1. 数理最適化は実務のどこにいるのか ✅
-<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-1-intro) -->
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-1-intro)
 - **題材**: 配送ルート、勤務シフト、生産計画、広告予算配分──身近な業務を「変数・制約・目的関数」の言葉に翻訳してみる
 - **学ぶこと**: 最適化問題の3要素
 - **可視化**: 学習ロードマップ
 
-### 0-2. SCIP + PySCIPOpt 環境構築 📝
-<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-2-setup) -->
+### 0-2. SCIP + PySCIPOpt 環境構築 ✅
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-2-setup)
 - **題材**: 最初の1問(2行で書ける最小のLP)が動くまで
 - **学ぶこと**: SCIP + PySCIPOpt のセットアップ(pip / conda / uv)。以降すべての章の共通環境。
 - **可視化**: なし
 
-### 0-3. 解を「見る」道具立て 📝
-<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-0-3-visualization) -->
+### 0-3. 解を「見る」可視化方法 ✅
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-3-visualization)
 - **題材**: 小さな割当問題の解を、表・ガントチャート・ネットワーク図で描き分ける
 - **学ぶこと**: matplotlib で最適化の解を可視化する定型パターン。以降の章で使い回す描画関数群をここで作る
 - **可視化**: この教材の可視化スタイルガイドそのもの

@@ -1,29 +1,31 @@
 ---
-title: "SCIP + PySCIPOpt 環境構築 〜 pip一発で最適化ソルバーが動くまで"
+title: "#2 SCIP + PySCIPOpt 環境構築"
 emoji: "🔧"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [数理最適化, SCIP, Python, PySCIPOpt, 環境構築]
-published: false
+published: true
 ---
 
 ## この記事について
 
-数理最適化を大学1年レベルから列生成法・分枝価格法まで学ぶ教材の第2回です。目次はこちら。
+**MIP**(Mixed Integer Programming)の数理最適化を学ぶ教材の第2回です。教材全体の目次はこちら。
 
 @[card](https://zenn.dev/ctenopoma/articles/mip-curriculum-toc)
+
+## Introduction
 
 今回はセットアップ回です。ゴールは1つだけ。
 
 **手元のPythonで、SCIPが1問解けること。**
 
-この教材で唯一、図が出てこない回です。5分で終わらせて次に進みましょう。
+5分で終わらせて次に進みましょう。
 
 ## 前提
 
 - Python 3.9以降(この記事はPython 3.11で確認)
 - pipが使えること
 
-以前は「SCIP本体を公式サイトからダウンロードしてインストールし、PATHを通してからPySCIPOptを入れる」という手順が必要でした。**今は不要です。** PySCIPOpt 4.3.0以降、PyPIのパッケージにSCIP本体が同梱されているため、pip一発で完結します。ネット上の古い手順(SCIPOPTDIRの設定など)に従う必要はありません。
+以前は「SCIP本体を公式サイトからダウンロードしてインストールし、PATHを通してからPySCIPOptを入れる」という手順が必要でしたが**今は不要です。** PySCIPOpt 4.3.0以降、PyPIのパッケージにSCIP本体が同梱されているため、pip一発で完結します。
 
 ## インストール
 
@@ -46,12 +48,6 @@ uv add pyscipopt matplotlib numpy
 ```
 
 `matplotlib` と `numpy` は次回以降の可視化で使うので、ここで一緒に入れておくのがおすすめです。
-
-### conda の場合
-
-```bash
-conda install -c conda-forge pyscipopt
-```
 
 ## 動作確認
 
@@ -95,10 +91,10 @@ x = 4.0 , y = 1.0
 
 ## ライセンスについて
 
-- **SCIP** はバージョン8.0.3以降、**Apache 2.0ライセンス**です。かつては学術利用限定(ZIB Academic License)だったため「SCIPは商用不可」という古い情報が残っていますが、現在は商用利用を含めて無償で使えます
+- **SCIP** はバージョン8.0.3以降、**Apache 2.0ライセンス**です。かつては学術利用限定(ZIB Academic License)だったため「SCIPは商用不可」という古い情報が残っていますが、最新版は商用利用を含めて無償で使えます
 - **PySCIPOpt** はMITライセンスです
 
-いずれにせよ、業務で使う際はその時点の公式のライセンス文書を確認してください。
+ただし8.0.2以前のSCIPは有償のままなので注意してください。いずれにせよ、業務で使う際はその時点の公式のライセンス文書を確認してください。
 
 @[card](https://www.scipopt.org/)
 
@@ -115,4 +111,4 @@ x = 4.0 , y = 1.0
 
 道具は揃いました。次回は「解を**見る**道具立て」。小さな割当問題を解いて、その解を表・ガントチャート・ネットワーク図に描き分けます。この教材で全編使い回す可視化の型を作る回です。
 
-(公開後にリンクを追記します)
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-0-3-visualization)
