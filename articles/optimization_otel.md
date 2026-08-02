@@ -9,12 +9,12 @@ published: true
 ## TL;DR
 
 - **数理最適化ソルバー**(MIP/MINLP: 混合整数[非線形]計画問題を解くエンジン)をOpenTelemetryで観測した話です
-- 「収束しない原因を、制約式を1本ずつOn/Offして探す」という手作業を自動化し、**Grafanaのログパネルが犯人制約をERRORで名指し**してくれるようになりました
+- 「収束しない原因を、制約式を1本ずつOn/Offして探す」という手作業を自動化し、**Grafanaのログパネルが犯人の制約グループをERRORで名指し**してくれるようになりました
 - 過去タイムスタンプのテレメトリ送信は罠だらけでした(コレクタのAlloyが古いメトリクスを黙って捨てる等)。ハマりどころ4連発が本記事の一次情報です
 
 ## Intro
 
-「最適化が収束しない。制約式を1本ずつOn/Offして犯人を探す」——数理最適化をやっている人なら一度はやったことがあるはずのこの手作業を、OpenTelemetry(以下OTel)の3シグナル(traces / metrics / logs)に乗せて自動化・可視化したら、**Grafanaのログパネルが犯人を名指ししてくれる**ようになりました。
+「最適化が収束しない。制約式を1本ずつOn/Offして犯人を探す」——数理最適化をやっている人なら一度はやったことがあるはずのこの手作業を、OpenTelemetry(以下OTel)の3シグナル(traces / metrics / logs)に乗せて自動化・可視化したら、**Grafana(OSSの監視ダッシュボード)のログパネルが犯人を名指ししてくれる**ようになりました。
 
 この記事は**長時間バッチ・探索型計算という異分野にOTelを持ち込むときの設計判断とハマりどころ**を、実測ベースで共有するものです。
 
@@ -63,14 +63,14 @@ graph TB
 
 | OTelシグナル | 最適化での対応物 | 属性(`opt.*`) |
 | --- | --- | --- |
-| **Traces** | campaign(実験一式)=親スパン、各run=子スパン、暫定解(incumbent)更新=スパンイベント | `opt.run_id` / `opt.campaign_id` / `opt.axis.*` / `opt.status` |
+| **Traces** | campaign(実験一式)=親スパン、各run(=1回の求解試行)=子スパン、暫定解(incumbent)更新=スパンイベント | `opt.run_id` / `opt.campaign_id` / `opt.axis.*` / `opt.status` |
 | **Metrics** | 双対ギャップ・上下界(primal/dual bound)・探索ノード数の時系列 | `opt_gap` / `opt_primal` / `opt_dual` / `opt_nodes`(ラベルに run_id 等) |
 | **Logs** | run完了サマリ + **診断エンジンの改善提案**(severity付き) | `opt_event=verdict` / `opt_group` / `opt_recipe` |
 
 :::message
 **gap(双対ギャップ)** は「今の暫定解が真の最適解から最悪どれだけ離れうるか」の保証値で、0%になれば「最適と証明できた」という意味です。以降の話はすべて「gapをどう0%に近づけるか」だと思って読んでください。
 
-なお、メトリクス名はOTLP上では `opt.gap`(ドット)ですが、Prometheusに入る際にドットがアンダースコアへ変換されるため、表中および以降では `opt_gap` と表記しています。
+なお、属性名はOTLP上ではすべてドット区切り(`opt.gap` / `opt.event`)ですが、後述する保存先の Prometheus / Loki に入る際にアンダースコアへ変換されます。表の表記は「格納後の見え方」に合わせています(トレースの保存先 Tempo だけはドットのまま保持します)。
 :::
 
 ポイントは3つ目のLogsです。今回のパイプラインには、観測量から症状を判定して改善提案を返す診断ルールが入っています。課題は、この提案をどこにどう見せるかでした。やったことは単純で、**提案をseverity付きのOTelログレコード**(good→INFO / warning→WARN / serious→ERROR / critical→FATAL)として流しただけです。これでGrafana側ではログパネル1枚が「提案一覧」になります。しかも trace_id で相関させてあるので、提案から該当campaignのトレースへワンクリックで飛べます。
@@ -94,7 +94,7 @@ graph TB
 | 外した制約グループ | status | 最終gap |
 | --- | --- | --- |
 | —(baseline) | timelimit | **140.8%** |
-| demand(需要充足 n·s·X ≥ d、三重積) | timelimit | **1.8%** |
+| demand(需要充足 n·s·X ≥ d、三重積=変数3つの積) | timelimit | **1.8%** |
 | cooling(除熱能力) | timelimit | 188.5% |
 | kinetics(反応速度論) | timelimit | 80.4% |
 | energy(エネルギー収支) | timelimit | 36.1% |
@@ -102,8 +102,20 @@ graph TB
 
 demandを外した瞬間だけgapが2桁落ちる。つまりこの三重積の凸緩和(ソルバーが内部で使う「解ける近似」)が緩すぎることが探索全体のボトルネックで、線形化や境界タイト化を打つべき場所はここだ、と機械的に分かります。モデルの中身を知らなくても総当たりで犯人が出る、雑だけど速いアプローチです。
 
+この判定は人が読む前に、まず機械可読な結果文書として `results/campaigns/<campaign_id>/campaign.json` に残ります(根拠と直し方付き。以下は demand 分の抜粋):
+
+```json
+{
+  "group": "demand",
+  "severity": "serious",
+  "verdict": "制約グループ 'demand' が収束ボトルネック(外すと gap がほぼ閉じる)",
+  "evidence": "gap 140.8% → 1.8% (off 'demand')",
+  "recipe": "この群の緩和が弱い。厳密線形化・変数境界タイト化・Big-M の Indicator 化を検討"
+}
+```
+
 :::message
-この verdict がGrafanaにERRORログとして流れてきます。Gapパネルは線1本が1run(=外した制約グループ1つ、左から実行順)です。どの線も高止まりする中、**demandを外したオレンジの線だけが0%近くまで落ち切っている**——この「1本だけ床に張り付く線」が犯人のサインです:
+この verdict がGrafanaにERRORログとして流れてきます(severity は前述の写像で serious→ERROR)。Gapパネルは線1本が1run(=外した制約グループ1つ、左から実行順)です。どの線も高止まりする中、**demandを外したオレンジの線だけが0%近くまで落ち切っている**——この「1本だけ床に張り付く線」が犯人のサインです:
 :::
 
 ![Grafanaダッシュボード。gap曲線・Primal/Dual・Suggestionsログパネルに「制約グループ 'demand' が収束ボトルネック」のERRORログが表示されている](/images/optimization_otel/grafana_dashboard.png)
@@ -212,6 +224,8 @@ exporter.export(MetricsData(resource_metrics=[ResourceMetrics(
     schema_url="")]))
 ```
 
+ただし、こうして組み立てた過去時刻のデータポイントを「いつ送るか」には別の罠があります(後述のハマりどころ2つ目)。
+
 ### ログはtrace相関がキモ
 
 診断提案をスパンに紐付けて送ります:
@@ -227,7 +241,7 @@ logger.emit(LogRecord(
     severity_number=SeverityNumber.ERROR, severity_text="ERROR",
     body="制約グループ 'demand' が収束ボトルネック(外すと gap がほぼ閉じる)",
     attributes={"opt.event": "verdict", "opt.group": "demand",
-                "opt.recipe": "三重積の厳密線形化・変数境界タイト化を検討"}))
+                "opt.recipe": "この群の緩和が弱い。厳密線形化・変数境界タイト化・Big-M の Indicator 化を検討"}))
 ```
 
 ## ハマりどころ4連発(ここが一次情報です)
@@ -240,13 +254,13 @@ end-to-endで動かして初めて分かったことを全部書きます。
 
 ### 古いメトリクスはAlloyが黙って捨てる
 
-これが最大の罠でした。`otelcol.exporter.prometheus` は**数分より古いデータポイントをstaleとして黙って落とします**。エラーも discard メトリクスも出ません。16時間前のrunをバックフィルしたら、traces と logs は入るのに metrics は `target_info` しか届かない、という症状で気づきました。
+これが最大の罠でした。`otelcol.exporter.prometheus` は**数分より古いデータポイントをstaleとして黙って落とします**。エラーも discard メトリクスも出ません。16時間前のrunをバックフィルしたら、traces と logs は入るのに metrics は `target_info`(リソース属性から自動生成されるメタ情報)しか届かない、という症状で気づきました。
 
 :::message alert
 **メトリクスは「求解直後に送る」設計にする。** 過去runのバックフィルで届くのは traces / logs のみ、と割り切ること。
 :::
 
-筆者はcampaign実行コマンドに `--otel` フラグを付けて、求解完了と同時に送るようにしました。Prometheus側の `out_of_order_time_window` は分オーダーの遅延を吸収するための保険です:
+筆者はcampaign実行コマンドに `--otel` フラグを付けて、求解完了と同時に送るようにしました。Prometheus側の `out_of_order_time_window` は分オーダーの遅延を吸収するための保険です(吸収したいのは分オーダーですが、窓の値自体は余裕を持って大きめにしてあります):
 
 ```yaml
 # prometheus.yml
