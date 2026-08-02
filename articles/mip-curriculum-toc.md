@@ -51,7 +51,7 @@ published: true
 連立一次方程式を前提に、線形計画を理解します。
 
 ### 1-1. 2変数の生産計画を絵で解く 📝
-<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical) -->
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical)
 - **題材**: 2製品の生産計画(材料と労働時間の制約で利益最大化)
 - **学ぶこと**: 実行可能領域、目的関数の等高線、最適解が頂点に来る理由。同じ問題をPySCIPOptで書いて答え合わせ
 - **可視化**: 実行可能領域と等高線のスライダーアニメーション

@@ -233,4 +233,4 @@ ax.axis("off")
 準備編はここまで。次回から第1部・線形計画(LP)編です。2製品の生産計画を**方眼紙の上で**解き、「実行可能領域」「等高線」「最適解はなぜ角に来るのか」を絵で理解します。
 
 (公開後にリンクを追記します)
-<!-- @[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical) -->
+@[card](https://zenn.dev/ctenopoma/articles/mip-course-1-1-lp-graphical)
